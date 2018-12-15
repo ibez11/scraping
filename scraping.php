@@ -1,4 +1,10 @@
 <?php
+
+
+require  "/home/comnimon/public_html/main/android/post_data/PHPExcel/Classes/PHPExcel.php";
+
+include '/home/comnimon/public_html/main/android/post_data/PHPExcel/Classes/PHPExcel/Writer/Excel2007.php';
+
 $url1 = "https://investor-api.realestate.com.au/v2/states/VIC/property_types/house/bedrooms/3.json";
 $url2 = "https://investor-api.realestate.com.au/v2/states/NSW/property_types/house/bedrooms/3.json";
 $url3 = "https://investor-api.realestate.com.au/v2/states/SA/property_types/house/bedrooms/3.json";
@@ -21,32 +27,51 @@ $all_array = array_merge(json_decode($values1,true),json_decode($values2,true), 
 $data_array = array();
 foreach($all_array as $result_value) {
 	$data_array[] = array(
-		'url'			=> 'https://www.realestate.com.au/neighbourhoods/'.$result_value['details']['suburb_name'].'-'.$result_value['details']['postcode'].'-'.$result_value['details']['state'],
+		'url'			=> 'https://www.realestate.com.au/neighbourhoods/'.str_replace(' ', '%20', $result_value['details']['suburb_name']).'-'.$result_value['details']['postcode'].'-'.$result_value['details']['state'],
 		'suburb_name'	=> $result_value['details']['suburb_name'],
 		'postcode'		=> $result_value['details']['postcode'],
 		'state'			=> $result_value['details']['state']
 	);
 }
-?>
-<table border="1">
-	<tr>
-		<td>A</td>
-		<td>B</td>
-		<td>C</td>
-		<td>D</td>
-	</tr>
-<?php
-print_r(count($data_array));
-foreach($data_array as $result) {
-	?>
-	<tr>
-		<td><?php echo $result['url']; ?></td>
-		<td><?php echo $result['suburb_name']; ?></td>
-		<td><?php echo $result['postcode']; ?></td>
-		<td><?php echo $result['state']; ?></td>
-	</tr>
-<?php 
-}
-?>
-</table>
 
+        $file = new PHPExcel();
+	$file->getProperties()->setCreator ( "ibEz" );
+
+        $file->getProperties()->setLastModifiedBy( "Testing Code" );
+	$file->getProperties()->setTitle( "Coding Test" );
+	$file->getProperties()->setSubject( "Inheritance " );
+	$file->getProperties()->setDescription( "Data Inheritance" );
+	$file->getProperties()->setKeywords( "Coding Test" );
+	$file->getProperties()->setCategory( "Coding Test" );
+	$file->setActiveSheetIndex( 0 );
+$file->getActiveSheet()->setCellValue('A1', "A");
+$file->getActiveSheet()->setCellValue('B1', "B");
+$file->getActiveSheet()->setCellValue('C1', "C");
+$file->getActiveSheet()->setCellValue('D1', "D");
+	$file->getActiveSheet()->setTitle( "Coding Test" );
+
+//print_r(count($data_array));
+$nomor= 1;
+foreach($data_array as $result) {
+
+      $file->getActiveSheet()->setCellValue('A'.$nomor, $result['url'] )
+->setCellValue( "B".$nomor, $result['suburb_name'] )
+      ->setCellValue("C".$nomor,$result['postcode'] )
+				->setCellValue ( "D".$nomor, $result['state'] );
+      $nomor++;
+
+}
+
+//	$file->setActiveSheetIndex( 0 );
+
+
+
+        $writer = PHPExcel_IOFactory::createWriter($file,'Excel2007');
+  $writer->save(str_replace('.php', '.xlsx', __FILE__));
+//$writer->save ( 'php://output' );
+	$writer = PHPExcel_IOFactory::load ( 'scraping.xlsx', 'Excel2007' );
+$file_url = "https://www.niagamonster.com/android/post_data/scraping.xlsx";
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header("Content-Disposition: attachment; filename=\"" . basename($file_url) . "\"");
+header("Cache-Control: max-age=0");
+readfile($file_url);
